@@ -35,3 +35,5 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE_TAG }}
+          build-args: |
+            MCU=F4
