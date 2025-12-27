@@ -10,95 +10,39 @@ ENV CUBEMX_VERSION="v6160"
 # 2. 安装所有系统依赖 - 合并到单个RUN指令以减少层数
 USER root
 
-RUN apt-get update && apt-get install -y ca-certificates curl && update-ca-certificates
-
-# 使用国内镜像源
-# RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak && \
-#     cat <<'EOF' > /etc/apt/sources.list
-# # 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
-# deb https://mirrors.osa.moe/ubuntu/ noble main restricted universe multiverse
-# # deb-src https://mirrors.osa.moe/ubuntu/ noble main restricted universe multiverse
-# deb https://mirrors.osa.moe/ubuntu/ noble-updates main restricted universe multiverse
-# # deb-src https://mirrors.osa.moe/ubuntu/ noble-updates main restricted universe multiverse
-# deb https://mirrors.osa.moe/ubuntu/ noble-backports main restricted universe multiverse
-# # deb-src https://mirrors.osa.moe/ubuntu/ noble-backports main restricted universe multiverse
-#
-# # deb https://mirrors.osa.moe/ubuntu/ noble-security main restricted universe multiverse
-# # # deb-src https://mirrors.osa.moe/ubuntu/ noble-security main restricted universe multiverse
-#
-# deb http://security.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
-# # deb-src http://security.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
-#
-# # 预发布软件源，不建议启用
-# # deb https://mirrors.osa.moe/ubuntu/ noble-proposed main restricted universe multiverse
-# # # deb-src https://mirrors.osa.moe/ubuntu/ noble-proposed main restricted universe multiverse
-# EOF
-
-# 更新 apt 并安装基础工具
-RUN apt-get update && apt-get install -y \
-    curl wget git vim gnupg gnupg2 unzip jq \
-    && rm -rf /var/lib/apt/lists/*
-
-# 3. 安装 CubeMX 图形和显示依赖
-RUN apt-get update -y && \
-    apt-get install -y \
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        wget \
+        git \
+        vim \
+        gnupg \
+        gnupg2 \
+        unzip \
+        jq \
         xvfb \
         libgbm1 \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 5. 安装 Java 运行时环境
-RUN apt-get update -y && \
-    apt-get install -y \
         openjdk-21-jre \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 7. 安装构建基础工具
-RUN apt-get update -y && \
-    apt-get install -y \
         build-essential \
         sudo \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 8. 安装 Python 环境
-RUN apt-get update -y && \
-    apt-get install -y \
         python3 \
         python3-pip \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 9. 安装 Ninja 构建系统
-RUN apt-get update -y && \
-    apt-get install -y \
         ninja-build \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 10. 安装 ARM 工具链
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
         gcc-arm-none-eabi \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 10. 安装 ARM 工具链
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
         libnewlib-arm-none-eabi \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 11. 添加 Kitware APT 源并安装 CMake
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc \
-    | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    ; \
+    update-ca-certificates; \
+    \
+    # add kitware apt repo for newer cmake
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc \
+        | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg; \
     echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main" \
-    | tee /etc/apt/sources.list.d/kitware.list && \
-    apt-get update && \
-    apt-get install -y cmake && \
-    apt-get clean && \
+        > /etc/apt/sources.list.d/kitware.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends cmake; \
+    \
+    apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # 3. 创建非 root 用户并设置工作目录
