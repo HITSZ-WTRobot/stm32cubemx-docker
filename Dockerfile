@@ -4,10 +4,8 @@
 
 FROM ubuntu:24.04
 
-# 1. CubeMX 版本环境变量
-ENV CUBEMX_VERSION="v6160"
+ENV CUBEMX_VERSION="v6161"
 
-# 2. 安装所有系统依赖 - 合并到单个RUN指令以减少层数
 USER root
 
 RUN apt-get update; \
@@ -57,7 +55,7 @@ WORKDIR /home/stm32
 ENV CUBE_PATH="/home/stm32/STM32CubeMX"
 ENV PATH="$CUBE_PATH:/home/stm32/.local/bin:$PATH"
 
-# 5. 下载并安装 CubeMX 到用户目录
+# 5. 下载并安装 CubeMX 到用户目录，创建 CubeMX 启动脚本
 RUN mkdir -p tmp_st && cd tmp_st && \
     wget -nv https://sw-center.st.com/packs/resource/library/stm32cube_mx_${CUBEMX_VERSION}-lin.zip && \
     unzip -q stm32cube_mx_${CUBEMX_VERSION}-lin.zip && \
@@ -65,10 +63,8 @@ RUN mkdir -p tmp_st && cd tmp_st && \
     mkdir -p ../STM32CubeMX && \
     mv MX/* ../STM32CubeMX/ 2>/dev/null || true && \
     ([ -d jre ] && mv jre ../STM32CubeMX/ || echo "no jre folder found") && \
-    cd .. && rm -rf tmp_st
-
-# 6. 创建 CubeMX 启动脚本
-RUN mkdir -p /home/stm32/.local/bin && \
+    cd .. && rm -rf tmp_st && \
+    mkdir -p /home/stm32/.local/bin && \
     echo '#!/bin/bash\nexec /home/stm32/STM32CubeMX/jre/bin/java -jar /home/stm32/STM32CubeMX/STM32CubeMX "$@"' \
     > /home/stm32/.local/bin/stm32cubemx && \
     chmod +x /home/stm32/.local/bin/stm32cubemx
